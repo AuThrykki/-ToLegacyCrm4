@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="CME_app">
+        <div id="CME_mainWrapper">
+
+            <div class="CME_title">
+                <span>
+                    CrmBuddy
+                </span>
+
+            </div>
+
+            <div class="invisibleDivierLine"></div>
+            <div id="CME_buttonStream" class="CME_stream">
+
+                <div class="streamTitle">
+                    Classic Interface
+                </div>
+                <button class="button" id="CME_toLegacyInterfaceButton">To legacy CRM!</button>
+
+                <div class="streamTitle">
+                    Crm Settings
+                </div>
+
+                <button class="button standardUrlNavButton" id="CME_toSolutionsButton"
+                    data-url="/tools/systemcustomization/systemcustomization.aspx">
+                    All Solutions
+                </button>
+
+
+
+                <button class="button standardUrlNavButton" id="CME_toUsersButton"
+                    data-url="/tools/AdminSecurity/adminsecurity_area.aspx">
+                    Users & Securityroles
+                </button>
+
+                <button class="button standardUrlNavButton" id="CME_toProcesser"
+                    data-url="/_root/homepage.aspx?etc=4703">
+                    Processes
+                </button>
+
+                <button class="button standardUrlNavButton" id="CME_toAuditLogButton"
+                    data-url="/tools/audit/audit_area.aspx">
+                    Audit log
+                </button>
+
+                <button class="button standardUrlNavButton" id="CME_toPluginSporingsButton"
+                    data-url="/_root/homepage.aspx?etc=4619">
+                    Plugin log
+                </button>
+
+            </div>
+
+        </div>
+
+        <div style="display: none;" id="errorScreen">
+            This plugin only works on pages, containing "dynamics.com" in their url.
+        </div>
+    </div>
+</body>
+<script src="./popup.js"></script>
+
+</html>

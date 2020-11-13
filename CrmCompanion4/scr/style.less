@@ -1,0 +1,105 @@
+.infoElement {
+    max-width: 45%;
+    margin: 1px;
+    display: inline-block;
+}
+
+.title {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+@BackgroundColour: #525F66;
+@lightFeature: #ABD3D8;
+@midFeature: #83A0AF;
+@DarkFeature: #C7F8F9;
+
+@LightFontColour:#FFFFFF;
+@TitleFontColour:@LightFontColour;
+@MainFontColour:#000000;
+
+body {
+    background-color: @BackgroundColour;
+    margin: 0;
+}
+
+.invisibleDivierLine {
+    width: 100%;
+    height: 6px;
+}
+
+#CME_app {
+    width: 160px;
+
+    #CME_mainWrapper {
+        color: black;
+        font-size: 14px;
+
+        
+        .CME_title{
+            font-size: 2em;
+            text-align: center;
+            width: 100%;
+            font-family: monospace;
+            color: @TitleFontColour;
+        }
+
+
+        #CME_buttonStream {
+            width: 90%;
+            margin: auto;
+            padding: 3px 0px 10px 0px;
+
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-content: center;
+            flex-wrap: wrap;
+    
+            &>div,&>button {
+                align-self: center;
+                margin: 1px 0px;
+                padding: 4px;
+                text-align: center;
+                height: auto;
+            }
+
+            .streamTitle {
+                font-weight: 600;
+                color: @LightFontColour;
+            }
+
+            button {
+                background-image: none;
+                background-color: @lightFeature;
+                color:@MainFontColour;
+            
+                border: none;
+            
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                background-image: none;
+                width: 100%;
+        
+                &:nth-child(2n) {
+                    background-color: lighten(@lightFeature,10%);
+                }
+                &:hover {
+                    background-color: darken(@lightFeature,10%);
+                }
+                &.disabled {
+                    background-color: darkgray;
+                    border: none;
+                    color: @MainFontColour;
+                    padding: 2px 2px;
+                    text-align: center;
+                    text-decoration: none;
+                    display: inline-block;
+                }
+            }
+        }
+    }
+}
+
+

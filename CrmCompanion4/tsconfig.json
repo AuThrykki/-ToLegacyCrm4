@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES6",
+    "allowJs": true,
+    "lib": [ "es2015","dom" ],
+    "outDir": "./dist",
+    "esModuleInterop": true
+  },
+  
+  "include": ["./scr"],
+  "exclude": [
+    "./node_modules"
+  ]
+}

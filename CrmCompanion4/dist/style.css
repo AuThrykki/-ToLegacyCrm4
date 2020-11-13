@@ -1,0 +1,78 @@
+.infoElement {
+  max-width: 45%;
+  margin: 1px;
+  display: inline-block;
+}
+.title {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+body {
+  background-color: #525F66;
+  margin: 0;
+}
+.invisibleDivierLine {
+  width: 100%;
+  height: 6px;
+}
+#CME_app {
+  width: 160px;
+}
+#CME_app #CME_mainWrapper {
+  color: black;
+  font-size: 14px;
+}
+#CME_app #CME_mainWrapper .CME_title {
+  font-size: 2em;
+  text-align: center;
+  width: 100%;
+  font-family: monospace;
+  color: #FFFFFF;
+}
+#CME_app #CME_mainWrapper #CME_buttonStream {
+  width: 90%;
+  margin: auto;
+  padding: 3px 0px 10px 0px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-content: center;
+  flex-wrap: wrap;
+}
+#CME_app #CME_mainWrapper #CME_buttonStream > div,
+#CME_app #CME_mainWrapper #CME_buttonStream > button {
+  align-self: center;
+  margin: 1px 0px;
+  padding: 4px;
+  text-align: center;
+  height: auto;
+}
+#CME_app #CME_mainWrapper #CME_buttonStream .streamTitle {
+  font-weight: 600;
+  color: #FFFFFF;
+}
+#CME_app #CME_mainWrapper #CME_buttonStream button {
+  background-color: #ABD3D8;
+  color: #000000;
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  background-image: none;
+  width: 100%;
+}
+#CME_app #CME_mainWrapper #CME_buttonStream button:nth-child(2n) {
+  background-color: #cee5e8;
+}
+#CME_app #CME_mainWrapper #CME_buttonStream button:hover {
+  background-color: #88c1c8;
+}
+#CME_app #CME_mainWrapper #CME_buttonStream button.disabled {
+  background-color: darkgray;
+  border: none;
+  color: #000000;
+  padding: 2px 2px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
