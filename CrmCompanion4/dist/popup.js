@@ -1,6 +1,4 @@
 //Global variables
-var _localAppstate;
-var _localHTMLObjects = {};
 var allowLogging = true;
 var _currentUrl;
 //MAIN
@@ -18,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
             return;
         }
         else {
+            chrome.runtime.onMessage.addListener(messagePopupHandler);
             popup_customMenyMainScript();
         }
     });
@@ -36,6 +35,9 @@ function panic() {
     if (errorScreen)
         errorScreen.style.display = "block";
 }
+function messagePopupHandler(message) {
+    console.log(message);
+}
 //Custom InBoxMenu
 function popup_customMenyMainScript() {
     if (allowLogging)
@@ -44,6 +46,7 @@ function popup_customMenyMainScript() {
         _currentUrl = tabs[0].url;
         //complex button logics
         popup_handleToLegacyInterfaceButton();
+        popup_handleLogAllFieldsButton();
         //simple button logics
         var buttonCollection = document.getElementsByClassName('standardUrlNavButton');
         const buttonArray = Array.from(buttonCollection);
@@ -80,7 +83,47 @@ function popup_openOldInterface() {
     let openUrl = "https://" + url.host.toString() + url.pathname.toString() + "?app=d365default&forceUCI=0&" + params.toString();
     window.open(openUrl);
 }
-//ToSolutionsButton 
+//Button "Log all fields"
+function popup_handleLogAllFieldsButton() {
+    if (_currentUrl) {
+        let button = document.getElementById('CME_toDisplayAllFields');
+        if (button && popup_checkIfUrlhasEntityAndId(_currentUrl)) {
+            button.addEventListener('click', popup_displayEntity);
+        }
+        else {
+            button.disabled = true;
+            button.innerText = "Cannot find Id or Entity in Url";
+            button.classList.add("disabled");
+        }
+    }
+}
+function popup_checkIfUrlhasEntityAndId(urlstring) {
+    let UrlObject = new URL(urlstring);
+    let currentUrlSearch = UrlObject.search;
+    let urlParams = new URLSearchParams(currentUrlSearch);
+    let entityName = urlParams.get("etn");
+    let entityId = urlParams.get("id");
+    if (!entityName || !entityId) {
+        if (allowLogging)
+            console.log("Missing entity id or name, cannot continue");
+        if (allowLogging)
+            console.log("name:", entityName, " | id: ", entityId);
+        return false;
+    }
+    return true;
+}
+function popup_displayEntity() {
+    let messageJson = { text: "logAllFields" };
+    if (allowLogging)
+        console.log("sending msg:", messageJson);
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var activeTab = tabs[0];
+        if (activeTab) {
+            chrome.tabs.sendMessage(activeTab.id, messageJson);
+        }
+    });
+}
+//simple navigation buttons 
 function popup_hostPlusUrl() {
     var toUrl = this === null || this === void 0 ? void 0 : this.dataset.url;
     if (!toUrl)
