@@ -31,10 +31,8 @@ function messageHandler(message) {
     }
 }
 
-
-
 //Read all Fields function:
-const consoleLogAllFieldValues = () => {
+const consoleLogAllFieldValues = async () => {
 
     var entityNameIdPack = fetchUrl();
     if (entityNameIdPack === null) { return; }
@@ -47,7 +45,7 @@ const consoleLogAllFieldValues = () => {
     var req = createFetchRequest(entityName, entityId);
     let data = null;
 
-    req.onreadystatechange = function () {
+    req.onreadystatechange = async function () {
         if (this.readyState === 4) {
             req.onreadystatechange = null;
             if (this.status === 200) {
@@ -60,16 +58,17 @@ const consoleLogAllFieldValues = () => {
             }
         }
     };
-    req.send();
+    await req.send();
 
     //Step-6 show return result values
-    if (data) {
-        var entityFetched = data.value[0];
-        console.log(entityFetched);    
-    } else {
-        console.log("Data was null")
+    if (!data) {
+        console.log("Data was null");
+        return;
     }
- 
+
+    var entityFetched = data.value[0];
+    console.log(entityFetched);    
+    let structuredFields = createStructuredFields(entityFetched);
 }
 
 const fetchUrl = () => {
@@ -86,17 +85,10 @@ const fetchUrl = () => {
         return null;
     }
 
-    console.log(Xrm);
-    if (!Xrm) {
-        console.log("Couldn't locate Xrm:", Xrm);
-    }
-
     return [entityName, entityId];
 }
 
 const createFetchRequest = (entityName, entityId) => {
-    //Retrieve Account Names whose Account Name Starts with word "M" using WEB API
-    //Step-1 : create fetch xml in adv find and replace all double quotes with single quote inside properties to shape it as a string
     var fetchXml =
         `
         <fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
@@ -107,26 +99,15 @@ const createFetchRequest = (entityName, entityId) => {
             </entity>
         </fetch>
         `;
-    //Step-2 : encode URI : var encodedFetchXML = encodeURI(fetchxml)
     var encodedFetchXML = encodeURI(fetchXml);
-
-    //Step-3 : create a query path with query and odata partial uurl : var query = "/api/data/v8.0/accounts?fetchXml="+encodedFetchXML ;
     var query = `/api/data/v8.0/${entityName}s?fetchXml=` + encodedFetchXML;
-
-    //Step-4 : create complete path : var path = Xrm.Page.context.getClientUrl() + query ;
-    var finalpathwithquery = Xrm.Page.context.getClientUrl() + query;
-
-    //Step-5 : create a XmlHttpRequest to retrieve data
-    var data = null;
+    var finalpathwithquery = "https://" + window.location.hostname + query;
     var isAsync = false;
 
     var req = null;
     if (window.XMLHttpRequest) {
         req = new XMLHttpRequest();
     }
-    // else if (window.ActiveXObject) {
-    //     req = new ActiveXObject("MSXML2.XMLHTTP.3.0");
-    // }
 
     req.open("GET", finalpathwithquery, isAsync);
     req.setRequestHeader("OData-MaxVersion", "4.0");
@@ -135,4 +116,49 @@ const createFetchRequest = (entityName, entityId) => {
     req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     req.setRequestHeader("Prefer", "odata.include-annotations=\"*\"");
     return req;
+}
+
+const createStructuredFields = (entityFetched:Object) => {
+    let mainFields = {};
+    let fieldAtValues = {};
+    
+    for (let key in entityFetched) {
+
+        var keyContainsAtSymbol = key.indexOf("@") !== -1;
+
+        //console.log("| ", key , " |", keyContainsAtSymbol );
+        
+        if (!keyContainsAtSymbol) {
+            mainFields[key] = entityFetched[key];
+        } else {
+            fieldAtValues[key] = entityFetched[key];
+        }
+    }
+
+    //console.log("FIELDS:::", fields);
+    //console.log("@Values:::", fieldAtValues);
+    //console.log(Object.keys(entityFetched).length,"|",Object.keys(fields).length,"|",Object.keys(fieldAtValues).length,"|");
+
+    let FieldSubTypes = {
+        formattedValue:"OData.Community.Display.V1.FormattedValue",
+        lookupName:"Microsoft.Dynamics.CRM.lookuplogicalname",
+        navProperty:"Microsoft.Dynamics.CRM.associatednavigationproperty"
+    }
+
+    let structuredFields = {};
+
+    for (let key in mainFields) {
+
+        let formattedValue = fieldAtValues[key+"@"+FieldSubTypes.formattedValue] ?? null;
+        let lookupName = fieldAtValues[key+"@"+FieldSubTypes.lookupName]  ?? null;
+        let navProperty = fieldAtValues[key+"@"+FieldSubTypes.navProperty]  ?? null;
+
+        structuredFields[key] = {
+            value: mainFields[key],
+            formattedValue:formattedValue,
+            lookupName:lookupName,
+            navProperty:navProperty,
+        }
+    }
+    console.log("Structured Fields:", structuredFields);
 }

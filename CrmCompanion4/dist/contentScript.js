@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 //debug Variables
 var allowLogging = true;
 //Main function
@@ -33,7 +42,7 @@ function messageHandler(message) {
     }
 }
 //Read all Fields function:
-const consoleLogAllFieldValues = () => {
+const consoleLogAllFieldValues = () => __awaiter(this, void 0, void 0, function* () {
     var entityNameIdPack = fetchUrl();
     if (entityNameIdPack === null) {
         return;
@@ -44,28 +53,30 @@ const consoleLogAllFieldValues = () => {
     var req = createFetchRequest(entityName, entityId);
     let data = null;
     req.onreadystatechange = function () {
-        if (this.readyState === 4) {
-            req.onreadystatechange = null;
-            if (this.status === 200) {
-                var result = JSON.parse(this.response);
-                data = result;
-                console.log("Data::: ", data);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.readyState === 4) {
+                req.onreadystatechange = null;
+                if (this.status === 200) {
+                    var result = JSON.parse(this.response);
+                    data = result;
+                    console.log("Data::: ", data);
+                }
+                else {
+                    console.warn(this.statusText);
+                }
             }
-            else {
-                console.warn(this.statusText);
-            }
-        }
+        });
     };
-    req.send();
+    yield req.send();
     //Step-6 show return result values
-    if (data) {
-        var entityFetched = data.value[0];
-        console.log(entityFetched);
-    }
-    else {
+    if (!data) {
         console.log("Data was null");
+        return;
     }
-};
+    var entityFetched = data.value[0];
+    console.log(entityFetched);
+    let structuredFields = createStructuredFields(entityFetched);
+});
 const fetchUrl = () => {
     let currentUrl = new URL(window.location.href);
     let currentUrlSearch = currentUrl.search;
@@ -78,15 +89,9 @@ const fetchUrl = () => {
         console.log("name:", entityName, " | id: ", entityId);
         return null;
     }
-    console.log(Xrm);
-    if (!Xrm) {
-        console.log("Couldn't locate Xrm:", Xrm);
-    }
     return [entityName, entityId];
 };
 const createFetchRequest = (entityName, entityId) => {
-    //Retrieve Account Names whose Account Name Starts with word "M" using WEB API
-    //Step-1 : create fetch xml in adv find and replace all double quotes with single quote inside properties to shape it as a string
     var fetchXml = `
         <fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
             <entity name='${entityName}'>
@@ -96,22 +101,14 @@ const createFetchRequest = (entityName, entityId) => {
             </entity>
         </fetch>
         `;
-    //Step-2 : encode URI : var encodedFetchXML = encodeURI(fetchxml)
     var encodedFetchXML = encodeURI(fetchXml);
-    //Step-3 : create a query path with query and odata partial uurl : var query = "/api/data/v8.0/accounts?fetchXml="+encodedFetchXML ;
     var query = `/api/data/v8.0/${entityName}s?fetchXml=` + encodedFetchXML;
-    //Step-4 : create complete path : var path = Xrm.Page.context.getClientUrl() + query ;
-    var finalpathwithquery = Xrm.Page.context.getClientUrl() + query;
-    //Step-5 : create a XmlHttpRequest to retrieve data
-    var data = null;
+    var finalpathwithquery = "https://" + window.location.hostname + query;
     var isAsync = false;
     var req = null;
     if (window.XMLHttpRequest) {
         req = new XMLHttpRequest();
     }
-    // else if (window.ActiveXObject) {
-    //     req = new ActiveXObject("MSXML2.XMLHTTP.3.0");
-    // }
     req.open("GET", finalpathwithquery, isAsync);
     req.setRequestHeader("OData-MaxVersion", "4.0");
     req.setRequestHeader("OData-Version", "4.0");
@@ -119,4 +116,40 @@ const createFetchRequest = (entityName, entityId) => {
     req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     req.setRequestHeader("Prefer", "odata.include-annotations=\"*\"");
     return req;
+};
+const createStructuredFields = (entityFetched) => {
+    var _a, _b, _c;
+    let mainFields = {};
+    let fieldAtValues = {};
+    for (let key in entityFetched) {
+        var keyContainsAtSymbol = key.indexOf("@") !== -1;
+        //console.log("| ", key , " |", keyContainsAtSymbol );
+        if (!keyContainsAtSymbol) {
+            mainFields[key] = entityFetched[key];
+        }
+        else {
+            fieldAtValues[key] = entityFetched[key];
+        }
+    }
+    //console.log("FIELDS:::", fields);
+    //console.log("@Values:::", fieldAtValues);
+    //console.log(Object.keys(entityFetched).length,"|",Object.keys(fields).length,"|",Object.keys(fieldAtValues).length,"|");
+    let FieldSubTypes = {
+        formattedValue: "OData.Community.Display.V1.FormattedValue",
+        lookupName: "Microsoft.Dynamics.CRM.lookuplogicalname",
+        navProperty: "Microsoft.Dynamics.CRM.associatednavigationproperty"
+    };
+    let structuredFields = {};
+    for (let key in mainFields) {
+        let formattedValue = (_a = fieldAtValues[key + "@" + FieldSubTypes.formattedValue]) !== null && _a !== void 0 ? _a : null;
+        let lookupName = (_b = fieldAtValues[key + "@" + FieldSubTypes.lookupName]) !== null && _b !== void 0 ? _b : null;
+        let navProperty = (_c = fieldAtValues[key + "@" + FieldSubTypes.navProperty]) !== null && _c !== void 0 ? _c : null;
+        structuredFields[key] = {
+            value: mainFields[key],
+            formattedValue: formattedValue,
+            lookupName: lookupName,
+            navProperty: navProperty,
+        };
+    }
+    console.log("Structured Fields:", structuredFields);
 };
